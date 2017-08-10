@@ -31,7 +31,7 @@ public class RadiatorDevice extends GenericDevice {
         props.put(Function.SERVICE_TYPE, Types.TEMPERATURE);
         props.put(Function.SERVICE_DEVICE_UID, deviceUID);
         props.put(Function.SERVICE_PROPERTY_NAMES, new String [] {MultiLevelControl.PROPERTY_DATA});
-        RadControlFunction func = new RadControlFunction(deviceUID, props);
+        RadiatorControlFunction func = new RadiatorControlFunction(deviceUID, props);
         context.registerService(Function.class, func, props);
     }
 

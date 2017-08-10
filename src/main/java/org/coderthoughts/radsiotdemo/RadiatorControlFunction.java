@@ -10,12 +10,12 @@ import org.osgi.service.dal.PropertyMetadata;
 import org.osgi.service.dal.functions.MultiLevelControl;
 import org.osgi.service.dal.functions.data.LevelData;
 
-public class RadControlFunction implements MultiLevelControl {
+public class RadiatorControlFunction implements MultiLevelControl {
     private final Dictionary<String, ?> serviceProps;
     private final String uid;
     private volatile LevelData data;
 
-    public RadControlFunction(String deviceUID, Dictionary<String, Object> props) {
+    public RadiatorControlFunction(String deviceUID, Dictionary<String, Object> props) {
         uid = deviceUID;
         serviceProps = props;
     }
