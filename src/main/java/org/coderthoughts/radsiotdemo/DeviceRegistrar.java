@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.dal.Device;
 import org.osgi.service.dal.Function;
 import org.osgi.service.dal.functions.BooleanSensor;
 import org.osgi.service.dal.functions.Types;
@@ -15,6 +16,7 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 public class DeviceRegistrar implements ServiceTrackerCustomizer<Map<String, Date>, Map<String, Date>> {
     private final BundleContext bundleContext;
+    private final Map<String, Device> devices = new ConcurrentHashMap<>();
     private final Map<String, MotionFunction> functions = new ConcurrentHashMap<>();
 
     public DeviceRegistrar(BundleContext context) {
@@ -42,6 +44,25 @@ public class DeviceRegistrar implements ServiceTrackerCustomizer<Map<String, Dat
 
             MotionFunction mf = getMotionFunction("pir1");
             mf.setData("on".equalsIgnoreCase(pir1State));
+
+            getDevice("ESP8266", "pir1");
+        }
+    }
+
+    private Device getDevice(String driverName, String deviceUID) {
+        GenericDevice device = new GenericDevice();
+        Device od = devices.putIfAbsent(deviceUID, device);
+        if (od != null) {
+            return od;
+        } else {
+            Dictionary<String, Object> props = new Hashtable<>();
+            props.put(Device.SERVICE_UID, driverName + ":" + deviceUID);
+            props.put(Device.SERVICE_DRIVER, driverName);
+            props.put(Device.SERVICE_STATUS, Device.STATUS_ONLINE);
+            props.put(Device.SERVICE_TYPES, new String [] { "PIR Sensor" } );
+            device.setProperties(props);
+            bundleContext.registerService(Device.class, device, props);
+            return device;
         }
     }
 

@@ -21,7 +21,7 @@
     <artifactId>rads-iot-demo</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Recording Servlet as OSGi Bundle</name>
+    <name>Radiator Pir IoT Demo</name>
     
     <build>
         <plugins>
