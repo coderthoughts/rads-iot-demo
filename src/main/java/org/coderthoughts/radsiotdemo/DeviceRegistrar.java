@@ -12,6 +12,7 @@ import org.osgi.service.dal.Device;
 import org.osgi.service.dal.Function;
 import org.osgi.service.dal.functions.BooleanSensor;
 import org.osgi.service.dal.functions.Types;
+import org.osgi.service.dal.functions.data.BooleanData;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 public class DeviceRegistrar implements ServiceTrackerCustomizer<Map<String, Date>, Map<String, Date>> {
@@ -38,14 +39,27 @@ public class DeviceRegistrar implements ServiceTrackerCustomizer<Map<String, Dat
 
     @Override
     public void modifiedService(ServiceReference<Map<String, Date>> reference, Map<String, Date> service) {
-        Object pir1Val = reference.getProperty("pir1");
-        if (pir1Val instanceof String) {
-            String pir1State = (String) pir1Val;
+        for (String key : reference.getPropertyKeys()) {
+            if (key.startsWith("pir")) {
+                Object pirVal = reference.getProperty(key);
+                if (pirVal instanceof String) {
+                    String pirState = (String) pirVal;
 
-            MotionFunction mf = getMotionFunction("pir1");
-            mf.setData("on".equalsIgnoreCase(pir1State));
+                    MotionFunction mf = getMotionFunction(key);
+                    boolean newState = "on".equalsIgnoreCase(pirState);
+                    BooleanData oldData = mf.getData();
+                    boolean ignoreUpdate = false;
+                    if (oldData != null) {
+                        if (oldData.getValue() == newState) {
+                            ignoreUpdate = true;
+                        }
+                    }
+                    if (!ignoreUpdate)
+                        mf.setData(newState);
 
-            getDevice("ESP8266", "pir1");
+                    getDevice("ESP8266", key);
+                }
+            }
         }
     }
 

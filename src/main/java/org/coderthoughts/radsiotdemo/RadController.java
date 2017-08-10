@@ -12,11 +12,12 @@ import org.osgi.service.event.EventHandler;
 public class RadController implements EventHandler {
     private final String radID;
 
-    RadController(BundleContext context, String radID) {
+    RadController(BundleContext context, String radID, String eventFilter) {
         this.radID = radID;
 
         Dictionary<String, Object> props = new Hashtable<>();
         props.put(EventConstants.EVENT_TOPIC, new String[] {FunctionEvent.TOPIC_PROPERTY_CHANGED});
+        props.put(EventConstants.EVENT_FILTER, eventFilter);
         context.registerService(EventHandler.class, this, props);
     }
 

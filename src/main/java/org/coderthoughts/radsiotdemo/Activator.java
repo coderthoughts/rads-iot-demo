@@ -16,7 +16,7 @@ public class Activator implements BundleActivator {
 
     @Override
     public void start(BundleContext context) throws Exception {
-        RadController rad1 = new RadController(context, "rad1");
+        RadController rad1 = new RadController(context, "rad1", "(dal.function.UID=pir1_motion)");
         rads = new RadController[] { rad1 };
 
         Filter filter = context.createFilter("(&(objectClass=java.util.Map)(org.coderthoughts.recordingservlet=*))");
