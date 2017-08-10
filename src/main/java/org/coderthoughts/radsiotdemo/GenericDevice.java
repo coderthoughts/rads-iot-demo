@@ -12,6 +12,10 @@ public class GenericDevice implements Device {
     GenericDevice() {
     }
 
+    GenericDevice(Dictionary<String, Object> props) {
+        properties = props;
+    }
+
     @Override
     public Object getServiceProperty(String propKey) {
         return properties.get(propKey);

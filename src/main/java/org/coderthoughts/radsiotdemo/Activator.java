@@ -12,12 +12,20 @@ public class Activator implements BundleActivator {
 
     private ServiceTracker<Map<String, Date>, Map<String, Date>> st;
     private DeviceRegistrar registrar;
-    private RadController[] rads;
+    private RadiatorDevice[] rads;
 
     @Override
     public void start(BundleContext context) throws Exception {
-        RadController rad1 = new RadController(context, "rad1", "(dal.function.UID=pir1_motion)");
-        rads = new RadController[] { rad1 };
+//        RadController rad1 = new RadController(context, "rad1", "(dal.function.UID=pir1_motion)");
+//        rads = new RadController[] { rad1 };
+
+        // rad controller controls all rads
+        // based on events and then sends message to rad
+
+        rads = new RadiatorDevice[] {
+                new RadiatorDevice(context, "radA"),
+                new RadiatorDevice(context, "radB")
+        };
 
         Filter filter = context.createFilter("(&(objectClass=java.util.Map)(org.coderthoughts.recordingservlet=*))");
 
@@ -30,9 +38,8 @@ public class Activator implements BundleActivator {
     public void stop(BundleContext context) throws Exception {
         st.close();
         registrar.destroy();
-        for (RadController rad : rads) {
+        for (RadiatorDevice rad : rads) {
             rad.destroy();
         }
-
     }
 }
