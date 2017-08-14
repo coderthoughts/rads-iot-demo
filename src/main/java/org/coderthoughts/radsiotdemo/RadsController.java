@@ -7,21 +7,43 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.dal.DeviceException;
+import org.osgi.service.dal.Function;
 import org.osgi.service.dal.FunctionEvent;
 import org.osgi.service.dal.functions.MultiLevelControl;
 import org.osgi.service.dal.functions.data.BooleanData;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
+import org.osgi.util.tracker.ServiceTracker;
 
 public class RadsController implements EventHandler {
     Map<String, MultiLevelControl> rads = new ConcurrentHashMap<>();
+    private ServiceTracker<Function, Function> st;
 
     RadsController(BundleContext context) {
         Dictionary<String, Object> props = new Hashtable<>();
         props.put(EventConstants.EVENT_TOPIC, new String[] {FunctionEvent.TOPIC_PROPERTY_CHANGED});
         context.registerService(EventHandler.class, this, props);
+
+        st = new ServiceTracker<Function, Function>(context, Function.class, null) {
+            @Override
+            public Function addingService(ServiceReference<Function> reference) {
+                Function svc = super.addingService(reference);
+                Object uid = reference.getProperty(Function.SERVICE_DEVICE_UID);
+
+                if (uid instanceof String && svc instanceof MultiLevelControl) {
+                    rads.put((String) uid, (MultiLevelControl) svc);
+                }
+                return svc;
+            }
+        };
+        st.open();
+    }
+
+    public void destroy() {
+        st.close();
     }
 
     @Override
@@ -32,22 +54,24 @@ public class RadsController implements EventHandler {
         String radiator = null;
         switch (fuid) {
         case "pir1:motion":
-            radiator = "rad1";
+            radiator = "radA";
             break;
         case "pir2:motion":
-            radiator = "rad2";
+            radiator = "radB";
             break;
         }
 
         BooleanData data = getDataProperty(event);
         int temp = data.getValue() ? 21 : 7;
 
-        MultiLevelControl rad = rads.get(radiator);
-        if (rad != null) {
-            try {
-                rad.setData(new BigDecimal(temp), "degrees");
-            } catch (DeviceException e) {
-                e.printStackTrace();
+        if (radiator != null) {
+            MultiLevelControl rad = rads.get(radiator);
+            if (rad != null) {
+                try {
+                    rad.setData(new BigDecimal(temp), "degrees");
+                } catch (DeviceException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -66,8 +90,5 @@ public class RadsController implements EventHandler {
             return (String) uid;
         }
         return null;
-    }
-
-    public void destroy() {
     }
 }

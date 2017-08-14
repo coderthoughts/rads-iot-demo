@@ -13,6 +13,7 @@ public class Activator implements BundleActivator {
     private ServiceTracker<Map<String, Date>, Map<String, Date>> st;
     private DeviceRegistrar registrar;
     private RadiatorDevice[] rads;
+    private RadsController radsCtrl;
 
     @Override
     public void start(BundleContext context) throws Exception {
@@ -26,6 +27,8 @@ public class Activator implements BundleActivator {
                 new RadiatorDevice(context, "radA"),
                 new RadiatorDevice(context, "radB")
         };
+
+        radsCtrl = new RadsController(context);
 
         Filter filter = context.createFilter("(&(objectClass=java.util.Map)(org.coderthoughts.recordingservlet=*))");
 
@@ -41,5 +44,6 @@ public class Activator implements BundleActivator {
         for (RadiatorDevice rad : rads) {
             rad.destroy();
         }
+        radsCtrl.destroy();
     }
 }

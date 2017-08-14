@@ -87,7 +87,7 @@ public class DeviceRegistrar implements ServiceTrackerCustomizer<Map<String, Dat
             return of;
         } else {
             Dictionary<String, Object> props = new Hashtable<>();
-            props.put(Function.SERVICE_UID, deviceUID + ":motion1");
+            props.put(Function.SERVICE_UID, deviceUID + ":motion");
             props.put(Function.SERVICE_TYPE, Types.MOTION);
             props.put(Function.SERVICE_DEVICE_UID, deviceUID);
             props.put(Function.SERVICE_PROPERTY_NAMES, new String [] {BooleanSensor.PROPERTY_DATA});
