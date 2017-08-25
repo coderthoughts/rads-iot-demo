@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.osgi.framework.BundleContext;
@@ -17,10 +18,12 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 import org.osgi.util.tracker.ServiceTracker;
+import org.osoco.software.iot.demo.gateway.api.RoomService;
 
 public class RadsController implements EventHandler {
     Map<String, MultiLevelControl> rads = new ConcurrentHashMap<>();
     private ServiceTracker<Function, Function> st;
+    private ServiceTracker<RoomService, RoomService> rsst;
 
     RadsController(BundleContext context) {
         Dictionary<String, Object> props = new Hashtable<>();
@@ -40,10 +43,14 @@ public class RadsController implements EventHandler {
             }
         };
         st.open();
+
+        rsst = new ServiceTracker<RoomService, RoomService>(context, RoomService.class, null);
+        rsst.open();
     }
 
     public void destroy() {
         st.close();
+        rsst.close();
     }
 
     @Override
@@ -51,21 +58,28 @@ public class RadsController implements EventHandler {
         System.out.println("*** Received update" + event);
         String fuid = getStringProperty(event, FunctionEvent.FUNCTION_UID);
 
-        String radiator = null;
+        Integer roomID = null;
         switch (fuid) {
         case "pir1:motion":
-            radiator = "radA";
+            roomID = 1;
             break;
         case "pir2:motion":
-            radiator = "radB";
+            roomID = 2;
             break;
         }
 
         BooleanData data = getDataProperty(event);
         int temp = data.getValue() ? 21 : 7;
 
-        if (radiator != null) {
-            MultiLevelControl rad = rads.get(radiator);
+        if (roomID != null) {
+            RoomService rs = rsst.getService();
+            if (rs != null) {
+                rs.reportMotion(roomID);
+                Entry<Float, Integer> suggestion = rs.getHeatingSuggestion(roomID);
+                temp = suggestion.getValue();
+            }
+
+            MultiLevelControl rad = rads.get(getRadFromRoomID(roomID));
             if (rad != null) {
                 try {
                     rad.setData(new BigDecimal(temp), "degrees");
@@ -74,6 +88,14 @@ public class RadsController implements EventHandler {
                 }
             }
         }
+    }
+
+    private String getRadFromRoomID(int roomID) {
+        switch (roomID) {
+        case 1: return "radA";
+        case 2: return "radB";
+        }
+        return null;
     }
 
     private BooleanData getDataProperty(Event event) {
